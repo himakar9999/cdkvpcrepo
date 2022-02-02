@@ -1,16 +1,41 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
 
-export class CdkprojectStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
-
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkprojectQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
-  }
+export interface CdkprojectStackprops extends cdk.Stackprops {
+  org: string,
+  environment: string
+  cidr: string,
+  maxAzs: number 
 }
+
+
+export class CdkprojectStack extends cdk.Stack {
+  
+  public readonly vpc: ec2.vpc;
+
+    constructor(scope: cdk.construct,id: string,props: CdkprojectStackprops) {
+      super(scope,id,props);
+        
+      this.vpc = new ec2.vpc(this,'${props.environment}-vpc',{
+        cidr: props.cidr,
+        maxAzs: props.maxAzs
+        subnetconfiguration:[,
+          {
+            name: 'public',
+            subnetType:ec2.subnetType.PUBLIC,
+            cidrMask: 28,
+          },
+          {
+            name: 'app',
+            subnetType:ec2.subnetType.PRIVATE,
+            cidrMask: 24,
+          },
+          {   
+            name: 'database',
+            subnetType:ec2.subnetType.ISOLATED,
+            cidrMask: 28,
+          }
+       ]   
+      });
+    }
+} 
